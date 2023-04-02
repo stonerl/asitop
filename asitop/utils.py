@@ -3,8 +3,13 @@ import glob
 import subprocess
 from subprocess import PIPE
 import psutil
-from .parsers import *
 import plistlib
+from .parsers import (
+    parse_thermal_pressure,
+    # parse_bandwidth_metrics,
+    parse_cpu_metrics,
+    parse_gpu_metrics,
+)
 
 
 def parse_powermetrics(path="/tmp/asitop_powermetrics", timecode="0"):
@@ -27,7 +32,7 @@ def parse_powermetrics(path="/tmp/asitop_powermetrics", timecode="0"):
             bandwidth_metrics,
             timestamp,
         )
-    except Exception as e:
+    except Exception:
         if data:
             if len(data) > 1:
                 powermetrics_parse = plistlib.loads(data[-2])
@@ -110,11 +115,11 @@ def get_cpu_info():
     cpu_info_lines = cpu_info.split("\n")
     data_fields = ["machdep.cpu.brand_string", "machdep.cpu.core_count"]
     cpu_info_dict = {}
-    for l in cpu_info_lines:
-        for h in data_fields:
-            if h in l:
-                value = l.split(":")[1].strip()
-                cpu_info_dict[h] = value
+    for cpu_info in cpu_info_lines:
+        for line in data_fields:
+            if line in cpu_info:
+                value = cpu_info.split(":")[1].strip()
+                cpu_info_dict[line] = value
     return cpu_info_dict
 
 
@@ -123,18 +128,19 @@ def get_core_counts():
     cores_info_lines = cores_info.split("\n")
     data_fields = ["hw.perflevel0.logicalcpu", "hw.perflevel1.logicalcpu"]
     cores_info_dict = {}
-    for l in cores_info_lines:
-        for h in data_fields:
-            if h in l:
-                value = int(l.split(":")[1].strip())
-                cores_info_dict[h] = value
+    for cores_info in cores_info_lines:
+        for line in data_fields:
+            if line in cores_info:
+                value = int(cores_info.split(":")[1].strip())
+                cores_info_dict[line] = value
     return cores_info_dict
 
 
 def get_gpu_cores():
     try:
         cores = os.popen(
-            "system_profiler -detailLevel basic SPDisplaysDataType | grep 'Total Number of Cores'"
+            "system_profiler -detailLevel basic SPDisplaysDataType | grep 'Total Number"
+            " of Cores'"
         ).read()
         cores = int(cores.split(": ")[-1])
     except:
