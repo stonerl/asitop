@@ -159,53 +159,62 @@ def get_soc_info():
         p_core_count = "?"
     soc_info = {
         "name": cpu_info_dict["machdep.cpu.brand_string"],
+        "generation": cpu_info_dict["machdep.cpu.brand_string"].split(" ")[1],
         "core_count": int(cpu_info_dict["machdep.cpu.core_count"]),
-        # set M1 as baseline
-        "cpu_max_power": 70,
-        "gpu_max_power": 70,
-        "cpu_max_bw": 20,
-        "gpu_max_bw": 20,
+        "cpu_max_power": None,
+        "gpu_max_power": None,
+        "cpu_max_bw": None,
+        "gpu_max_bw": None,
         "e_core_count": e_core_count,
         "p_core_count": p_core_count,
         "gpu_core_count": get_gpu_cores(),
     }
     # bandwith & TDP (power)
-    if soc_info["name"].__contains__("Apple M1"):
-        if soc_info["name"] == "Apple M1 Ultra":
-            soc_info["cpu_max_bw"] = 500
-            soc_info["gpu_max_bw"] = 800
-            soc_info["cpu_max_power"] = 60
-            soc_info["gpu_max_power"] = 120
-        elif soc_info["name"] == "Apple M1 Max":
-            soc_info["cpu_max_bw"] = 250
-            soc_info["gpu_max_bw"] = 400
-            soc_info["cpu_max_power"] = 30
-            soc_info["gpu_max_power"] = 60
-        elif soc_info["name"] == "Apple M1 Pro":
-            soc_info["cpu_max_bw"] = 200
-            soc_info["gpu_max_bw"] = 200
-            soc_info["cpu_max_power"] = 30
-            soc_info["gpu_max_power"] = 30
-        else:
+    match soc_info["generation"]:
+        case "M1":
+            match soc_info["name"]:
+                case "Apple M1 Ultra":
+                    soc_info["cpu_max_bw"] = 500
+                    soc_info["gpu_max_bw"] = 800
+                    soc_info["cpu_max_power"] = 60
+                    soc_info["gpu_max_power"] = 120
+                case "Apple M1 Max":
+                    soc_info["cpu_max_bw"] = 250
+                    soc_info["gpu_max_bw"] = 400
+                    soc_info["cpu_max_power"] = 30
+                    soc_info["gpu_max_power"] = 60
+                case "Apple M1 Pro":
+                    soc_info["cpu_max_bw"] = 200
+                    soc_info["gpu_max_bw"] = 200
+                    soc_info["cpu_max_power"] = 30
+                    soc_info["gpu_max_power"] = 30
+                case _:
+                    soc_info["cpu_max_bw"] = 70
+                    soc_info["gpu_max_bw"] = 70
+                    soc_info["cpu_max_power"] = 20
+                    soc_info["gpu_max_power"] = 20
+        case "M2":
+            match soc_info["name"]:
+                case "Apple M2 Max":
+                    soc_info["cpu_max_bw"] = 250
+                    soc_info["gpu_max_bw"] = 400
+                    soc_info["cpu_max_power"] = 30
+                    soc_info["gpu_max_power"] = 60
+                case "Apple M2 Pro":
+                    soc_info["cpu_max_bw"] = 200
+                    soc_info["gpu_max_bw"] = 200
+                    soc_info["cpu_max_power"] = 40
+                    soc_info["gpu_max_power"] = 35
+                case _:
+                    soc_info["cpu_max_bw"] = 100
+                    soc_info["gpu_max_bw"] = 100
+                    soc_info["cpu_max_power"] = 25
+                    soc_info["gpu_max_power"] = 15
+        case _:
+            # set M1 as baseline
             soc_info["cpu_max_bw"] = 70
             soc_info["gpu_max_bw"] = 70
             soc_info["cpu_max_power"] = 20
             soc_info["gpu_max_power"] = 20
 
-    elif soc_info["name"].__contains__("Apple M2"):
-        if soc_info["name"] == "Apple M2 Max":
-            soc_info["cpu_max_bw"] = 250
-            soc_info["gpu_max_bw"] = 400
-            soc_info["cpu_max_power"] = 30
-            soc_info["gpu_max_power"] = 60
-        elif soc_info["name"] == "Apple M2 Pro":
-            soc_info["cpu_max_bw"] = 200
-            soc_info["gpu_max_bw"] = 200
-            soc_info["cpu_max_power"] = 40
-            soc_info["gpu_max_power"] = 35
-        else:
-            soc_info["cpu_max_bw"] = 100
-            soc_info["gpu_max_bw"] = 100
-            soc_info["cpu_max_power"] = 25
-            soc_info["gpu_max_power"] = 15
     return soc_info
